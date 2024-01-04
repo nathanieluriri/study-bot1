@@ -4,7 +4,8 @@ from pathlib import Path
 from langchain_community.chat_models import ChatOpenAI
 from extraction import extract_text_from,Get_chunks
 from variables import Get_questions,Get_Notes
-
+#from dotenv import load_dotenv
+#load_dotenv()
 
 llm = ChatOpenAI(temperature=1,model="gpt-3.5-turbo-1106")
 

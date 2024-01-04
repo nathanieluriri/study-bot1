@@ -3,7 +3,7 @@ import streamlit as st
 from langchain_community.chat_models import ChatOpenAI
 
 
-llm = ChatOpenAI(openai_api_key="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",temperature=1)
+llm = ChatOpenAI(temperature=1)
 
 from langchain.schema import (
     SystemMessage,
