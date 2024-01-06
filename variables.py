@@ -35,7 +35,7 @@ def Get_questions(user_input):
     messages = [
     SystemMessage(content=sysm)
 ]
-    AIres_with_context = {}
+    AIres_with_context = []
     AIres = []
     for user in user_input:
         if len(messages) == 3:
@@ -49,7 +49,7 @@ def Get_questions(user_input):
         messages.append(AIMessage(content="{}".format(Ai_response)))
         AIres.append(Ai_response)
     
-        AIres_with_context.update({user:Ai_response})
+        AIres_with_context.append({user:Ai_response})
 
     
     return AIres,AIres_with_context

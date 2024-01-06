@@ -6,6 +6,11 @@ from extraction import extract_text_from,Get_chunks
 from variables import Get_questions,Get_Notes
 
 llm = ChatOpenAI(temperature=1,model="gpt-3.5-turbo-1106")
+from langchain.schema import (
+    SystemMessage,
+    HumanMessage,
+    AIMessage
+)
 
 
 
@@ -58,6 +63,86 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
+def check(look_for,lst):
+    for checkme in lst:
+        if look_for.strip() in checkme.strip():
+            return f"{checkme}"
+    return False
+
+def look(look_for,dct):
+    for checking in dct:
+        for check in checking:
+            if look_for in checking[check]:
+                return checking
+        
+        
+def get_key_and_value(dictionary, key):
+    if key in dictionary:
+        return key, dictionary[key]
+    else:
+        return None, None
+
+def get_key_by_value(dictionary, target_value):
+    for key, value in dictionary.items():
+        if value == target_value:
+            return key
+    return None
+def response_calculator(Prompt):
+    if Prompt:
+        
+        it_is_there=check(Prompt,st.session_state.questions)
+        
+        
+        if it_is_there != False:
+            ContextwQuestion =look(it_is_there,st.session_state.Question_with_context)
+            key = get_key_by_value(ContextwQuestion, it_is_there)
+            
+            context, Question = key,it_is_there
+
+            
+            sysm="You're adept at providing answers and insights to questions given to be analyzed. You use the context provided below as a guide so make sure you don't use your training knowledge unless its to make things easier to understand . Your goal is to offer clear, concise answers that illuminate the essence of the content presented."
+            messages = [
+            SystemMessage(content=sysm)
+            ]
+
+            messages.append(HumanMessage(content=f"Answer these Questions</Question>{Question}<Question/> and use this context for reference</context/>{context}</context/> provide clear and easy to follow explanations using simple grammar"))
+            Ai_message = llm(messages)        
+            
+            Ai_response = Ai_message.content
+
+            return Ai_response
+
+
+    
+    return f"the {it_is_there}"
+
+
+def user(Prompt):
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    user_prompt = st.chat_message("user")
+    user_prompt.write(Prompt)
+    print(Prompt)
+    st.session_state.messages.append({"role":"user","content":Prompt})
+    return True
+
+def bot_response(Prompt):
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    bot_res = st.chat_message("assistant")
+    The_gist = response_calculator(Prompt)
+    
+    bot_res.write(The_gist)
+    st.session_state.messages.append({ "role":"assistant", "content":The_gist})
+
+def display_previous_chats ():
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    
 
 with st.sidebar:
     run_once()
@@ -93,13 +178,14 @@ if not st.session_state.user_info == False:
         
         profile_completeness= True  # fk_status_profile_completeness(st.session_state.user_info['sub'])
         if profile_completeness ==True:
+            st.info("Use the test questions generated for quick answers from Botly. Check notes if needed. The function would be made available once the notes is generated",icon="✔")
             with st.sidebar:
                 st.success(f" Welcome Back {st.session_state.user_info['given_name']}")
                 
                 if st.button("[TO Start a new session] ",type='primary'):
                     st.markdown("[Click me ](/)")
 
-            Upload_PDFS, AI_Note, Practice_test = st.tabs(["Upload PDF's","AI Personalized Note","Practice Test"])
+            Upload_PDFS, AI_Note, Practice_test,Botly_replies = st.tabs(["Upload PDF's","AI Personalized Note","Practice Test","Botly replies"])
 
 
             with Upload_PDFS: # Upload documents tab
@@ -145,6 +231,7 @@ if not st.session_state.user_info == False:
                         st.markdown(noted)
 
             with Practice_test:
+
                 st.session_state.chapter_count = "2"
                 with st.container(border=True):
                     st.markdown("##### ~Greetings, everyone!~ Greetings Gabriel `How` are `you` `doing`? `Are` `you` `ready` `for` `the` `test`? `If` `you` `can` `confidently` `answer` `all` `the` `questions`, know that `you` `are` `prepared` `for` `anything`. Best of luck! ")
@@ -156,8 +243,22 @@ if not st.session_state.user_info == False:
                         st.code(f" [SECTION] {st.session_state.questions.index(question)+1}")
                         st.markdown(question)
                         
-                        
+           
+            st.session_state.user_inquiry = st.chat_input("Paste the test questions here to receive concise answers from my notes.")
+            
 
+            with Botly_replies:
+                display_previous_chats ()
+                if st.session_state.user_inquiry:
+                    
+                    success=user(st.session_state.user_inquiry)
+                    if success:
+                        bot_response(st.session_state.user_inquiry)
+                    
+
+                else: print(st.session_state.user_inquiry)
+                
+  
 
                 
                 
