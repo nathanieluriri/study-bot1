@@ -4,8 +4,6 @@ from pathlib import Path
 from langchain_community.chat_models import ChatOpenAI
 from extraction import extract_text_from,Get_chunks
 from variables import Get_questions,Get_Notes
-#from dotenv import load_dotenv
-#load_dotenv()
 
 llm = ChatOpenAI(temperature=1,model="gpt-3.5-turbo-1106")
 
@@ -99,7 +97,7 @@ if not st.session_state.user_info == False:
                 st.success(f" Welcome Back {st.session_state.user_info['given_name']}")
                 
                 if st.button("[TO Start a new session] ",type='primary'):
-                    st.markdown("[Click me ](http://localhost:8501/)")
+                    st.markdown("[Click me ](/)")
 
             Upload_PDFS, AI_Note, Practice_test = st.tabs(["Upload PDF's","AI Personalized Note","Practice Test"])
 
@@ -134,7 +132,7 @@ if not st.session_state.user_info == False:
                     if st.session_state.note['status'] == 'In Progress':
                          
                          st.info(f"CURRENT STATE : {st.session_state.note['status']}",icon="🔥")
-                         st.session_state.AInote,st.session_state.note['status'] = Get_Notes(st.session_state.chunks)
+                         st.session_state.AInote,st.session_state.note['status'] = Get_Notes(st.session_state.chunks) # get note function returns the ai note and the current status depending on the situation you might have to return the context and note as a dictionary
                          st.write(f" Your Note Is {st.session_state.note['status']} Click the Button below to view it")
                          st.button("click me ! ")
                             
