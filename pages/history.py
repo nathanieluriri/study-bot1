@@ -188,26 +188,21 @@ if not st.session_state.user_info == False:
                     st.markdown("[Click me ](/)")
                 
 
-            Upload_PDFS, AI_Note, Practice_test,Botly_replies = st.tabs(["Upload PDF's","AI Personalized Note","Practice Test","Botly replies"])
+            History_Tab, AI_Note, Practice_test,Botly_replies = st.tabs(["Recently generated Notes","AI Personalized Note","Practice Test","Botly replies"])
 
 
-            with Upload_PDFS: # Upload documents tab
+            with History_Tab: # History  tab
                 with st.container(border=True):
-                    st.session_state.note['content'] = st.file_uploader("Upload PDF's",type=["Pdf","Pptx","docx"],help="Upload PDFs or slide or word document to generate a personalized note",disabled=st.session_state.disabled)
-                    if st.session_state.note['content'] != None:
-                        st.warning("""
-                                IF YOU CLICK CREATE MY NOTE YOU
-                                 WILL HAVE TO START A NEW 
-                                 SESSION TO CREATE ANOTHER NOTE!""",icon="⚠️")
-                        if st.button("Create my note"):
-                            st.session_state.note['status'] = 'In Progress'
-                            st.session_state.disabled  = True
-                            st.session_state.text_content = extract_text_from(st.session_state.note['content'])
-                            
-                            if st.session_state.text_content != None:
-                                st.session_state.note['status'] = 'In Progress'
-                                st.session_state.chunks = Get_chunks(st.session_state.text_content)
-                                st.session_state.questions,st.session_state.Question_with_context =Get_questions(st.session_state.chunks)
+                    st.session_state.note['content'] = st.file_uploader("Upload PDF's",type=["Pdf","Pptx","docx"],help="Upload PDFs or slide or word document to generate a personalized note",disabled=st.session_state.disabled)            
+                if st.button("Create my note"):
+                    st.session_state.note['status'] = 'In Progress'
+                    
+                    st.session_state.text_content = extract_text_from(st.session_state.note['content'])
+                    
+                    if st.session_state.text_content != None:
+                        st.session_state.note['status'] = 'In Progress'
+                        st.session_state.chunks = Get_chunks(st.session_state.text_content)
+                        st.session_state.questions,st.session_state.Question_with_context =Get_questions(st.session_state.chunks)
                                 
                                     
                        
@@ -230,7 +225,7 @@ if not st.session_state.user_info == False:
 
                 elif st.session_state.note['status'] == 'ready':
                     st.success(f" {st.session_state.note['status']}",icon="🎁")
-                    for noted in st.session_state.AInote:
+                    for noted in st.session_state.AInote: #Ai Note is a list 
                         st.markdown(noted)
 
             with Practice_test:

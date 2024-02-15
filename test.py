@@ -1,5 +1,5 @@
 import streamlit as st
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from extraction import extract_text_from,Get_chunks
 from variables import Get_questions
 

@@ -1,6 +1,6 @@
 import streamlit as st 
 
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 
 
 llm = ChatOpenAI(temperature=1)
