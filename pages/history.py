@@ -16,6 +16,7 @@ from langchain.schema import (
 
 
 
+
 from typing import List, Dict, Union
 from bson import ObjectId
 
@@ -65,7 +66,10 @@ def History_id_only(title_map:List[Dict] , selected_title:str)->Union[ObjectId,s
 if "History_IDS" not in st.session_state:
     st.session_state.History_IDS = []
 
-st.session_state.History_IDS=history_ID_query(st.session_state.UD._id)
+try:
+    st.session_state.History_IDS=history_ID_query(st.session_state.UD._id)
+except:
+    st.switch_page("app.py")
 
 st.session_state.Title_maps = title_maping(st.session_state.History_IDS)
 st.session_state.titles = titles_only(st.session_state.Title_maps)
@@ -162,9 +166,12 @@ def response_calculator(Prompt):
             ]
 
             messages.append(HumanMessage(content=f"Answer these Questions</Question>{Question}<Question/> and use this context for reference</context/>{context}</context/> provide clear and easy to follow explanations using simple grammar"))
-            Ai_message = llm(messages)        
-            
-            Ai_response = Ai_message.content
+            try:
+                Ai_message = llm(messages)        
+                
+                Ai_response = Ai_message.content
+            except:
+                Ai_response ="You have no network Please try again when there is network"
 
             return Ai_response
 
