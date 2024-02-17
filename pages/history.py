@@ -1,9 +1,10 @@
 import streamlit as st
 import time
 from pathlib import Path
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI 
 from extraction import extract_text_from,Get_chunks
 from variables import Get_questions,Get_Notes
+from database import history_ID_query, history_query
 
 llm = ChatOpenAI(temperature=1,model="gpt-3.5-turbo-1106")
 from langchain.schema import (
@@ -15,9 +16,59 @@ from langchain.schema import (
 
 
 
+from typing import List, Dict, Union
+from bson import ObjectId
+
+
+def title_maping(history_ids:list) ->  List[Dict]:
+    """
+    This functions maps the users title to history id of a user
+    it takes a list of history ID and loops through the id to return 
+    the list of titles and history ID objects accordingly
+    
+    
+    """
+    Title_map = []
+   
+    for history_id in history_ids:
+        documents = history_query(history_id)
+        title = documents[0][0][0].split('\n')[0]
+        Title_map.append({"History id":history_id,"Title":title})
+    return Title_map
 
 
 
+def titles_only(title_map:List[Dict])->List[str]:
+    titles = [option['Title'] for option in title_map]
+    return titles
+
+
+
+
+def History_id_only(title_map:List[Dict] , selected_title:str)->Union[ObjectId,str]: 
+    try:
+        selected_history_id = next(option['History id'] for option in title_map if option['Title'] == selected_title)
+        
+    except StopIteration:
+        selected_history_id = "Nothing selected"
+    return selected_history_id
+
+# # Selectbox returns the selected title directly
+# selected_title = st.selectbox(
+#     "Select a title",
+#     titles,
+#     index=None,
+#     placeholder="Select a title..."
+# )
+
+
+if "History_IDS" not in st.session_state:
+    st.session_state.History_IDS = []
+
+st.session_state.History_IDS=history_ID_query(st.session_state.UD._id)
+
+st.session_state.Title_maps = title_maping(st.session_state.History_IDS)
+st.session_state.titles = titles_only(st.session_state.Title_maps)
 
 def run_once():
     if "user_info" not in st.session_state:
@@ -153,84 +204,54 @@ with st.sidebar:
     run_once()
 
 
-    if st.session_state.signed_in == False:
-
-        user_info = {'given_name':'Gabriel'}      # login_button(clientId = clientId, domain = domainName, key="login")
-
-        st.session_state.user_info = user_info
-
-        if user_info != False:
-
-            st.session_state.signed_in = True
-
-        elif user_info == False:
-
-            st.session_state.signed_in = False
-
-
     
 
-
-auth_state = None
-
-# write logic for a logout 
 
 
 
 def main_ui():
-
-    st.info("Use the test questions generated for quick answers from Botly. Check notes if needed. The function would be made available once the notes are generated", icon="✔")
-
-    with st.sidebar:
-        st.success(f" Welcome Back {st.session_state.user_info['given_name']}")
-
-        if st.button("[TO Start a new session] ", type='primary'):
-            st.markdown("[Click me ](/)")
+    st.markdown('<style> section[data-testid="stSidebar"]{ display: none !important; }</style>', unsafe_allow_html=True)
 
     History_Tab, AI_Note, Practice_test, Botly_replies = st.tabs(["Recently generated Notes", "AI Personalized Note", "Practice Test", "Botly replies"])
 
     with History_Tab:  # History  tab
-        with st.container(border=True):
-            st.session_state.note['content'] = st.file_uploader("Upload PDF's", type=["Pdf", "Pptx", "docx"],
-                                                               help="Upload PDFs or slides or word documents to generate a personalized note",
-                                                               disabled=st.session_state.disabled)
-
+    
         if st.button("Create my note"):
-            st.session_state.note['status'] = 'In Progress'
-            st.session_state.text_content = extract_text_from(st.session_state.note['content'])
+                        st.switch_page("app.py")
 
-            if st.session_state.text_content is not None:
-                st.session_state.note['status'] = 'In Progress'
-                st.session_state.chunks = Get_chunks(st.session_state.text_content)
-                st.session_state.questions, st.session_state.Question_with_context = Get_questions(
-                    st.session_state.chunks)
+        st.selectbox(
+            "Select a History",
+            index=None,
+            options=st.session_state.titles,
+            placeholder="Select a History you want to return to...",
+            key= "HistoryOption"
+        )
+        st.session_state.Selected_History_Id =History_id_only(title_map=st.session_state.Title_maps,selected_title=st.session_state.HistoryOption)
+        st.session_state.history_docs =history_query(st.session_state.Selected_History_Id)
+        
+
+
+                
 
     with AI_Note:
-        if st.session_state.note['status'] != 'ready':  # in case the note isn't ready, it should display something
+        try:
+            st.session_state.AInote = st.session_state.history_docs[0][0]
+            st.session_state.Question_with_context = st.session_state.history_docs[2][0]
+        except:
+            st.session_state.AInote = ["# Nothing yet"]
 
-            if st.session_state.note['status'] == 'In Progress':
-                st.info(f"CURRENT STATE : {st.session_state.note['status']}", icon="🔥")
-                st.session_state.AInote, st.session_state.note['status'] = Get_Notes(st.session_state.chunks)
-                st.write(f" Your Note Is {st.session_state.note['status']} Click the Button below to view it")
-                st.button("click me ! ")
-
-            elif st.session_state.note['status'] != 'In Progress':
-                st.error(f"CURRENT STATE : {st.session_state.note['status']}", icon="🚨")
-
-        elif st.session_state.note['status'] == 'ready':
-            st.success(f" {st.session_state.note['status']}", icon="🎁")
-            for noted in st.session_state.AInote:  # Ai Note is a list
-                st.markdown(noted)
+        for noted in st.session_state.AInote:  # Ai Note is a list
+            st.markdown(noted)
 
     with Practice_test:
         st.session_state.chapter_count = "2"
-        with st.container(border=True):
-            st.markdown("##### ~Greetings, everyone!~ Greetings Gabriel `How` are `you` `doing`? `Are` `you` `ready` `for` `the` `test`? `If` `you` `can` `confidently` `answer` `all` `the` `questions`, know that `you` `are` `prepared` `for` `anything`. Best of luck! ")
-
-        if st.session_state.questions:
-            for question in st.session_state.questions:
-                st.code(f" [SECTION] {st.session_state.questions.index(question) + 1}")
-                st.markdown(question)
+        try:
+            st.session_state.questions = st.session_state.history_docs[1][0]
+        except:
+            st.session_state.questions = ["# Nothing yet"]
+        for question in st.session_state.questions:
+            st.code(f" [SECTION] {st.session_state.questions.index(question) + 1}")
+            st.markdown(question)
 
     st.session_state.user_inquiry = st.chat_input("Paste the test questions here to receive concise answers from my notes.")
 

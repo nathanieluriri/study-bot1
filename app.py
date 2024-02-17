@@ -4,16 +4,49 @@ from pathlib import Path
 from langchain_openai import ChatOpenAI
 from extraction import extract_text_from,Get_chunks
 from variables import Get_questions,Get_Notes
+from database import save_history
+
+if 'History_ID' not in st.session_state:
+    st.session_state.History_ID = None
+
+if 'History_D' not in st.session_state:
+    st.session_state.History_D = None
+
+
+
+
+
 
 llm = ChatOpenAI(temperature=1,model="gpt-3.5-turbo-1106")
+
+
+
 from langchain.schema import (
     SystemMessage,
     HumanMessage,
     AIMessage
 )
 
+def updateChatHistory():
+    from pymongo import MongoClient
+    client = MongoClient('mongodb://localhost:27017/')
+    db = client['studybotdb']
+    history = db['history']
+    filter_criteria = {'_id':st.session_state.History_ID}
+    update_operation = {
+    '$set': {
+        'Chat History': st.session_state.messages
+    }}
+    print("History ID",st.session_state.History_ID)
+    history.update_one(filter_criteria, update_operation)
 
 
+try:
+    if st.session_state.UD ==None:
+        st.switch_page('pages/loginpage.py')
+except AttributeError:
+    st.switch_page('pages/loginpage.py')
+    
 def run_once():
     if "user_info" not in st.session_state:
         st.session_state.user_info = False
@@ -139,6 +172,7 @@ def display_previous_chats ():
     if "messages" not in st.session_state:
         st.session_state.messages = []
     for message in st.session_state.messages:
+        updateChatHistory()
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
@@ -150,7 +184,7 @@ with st.sidebar:
 
     if st.session_state.signed_in == False:
 
-        user_info = {'given_name':'Gabriel'}      # login_button(clientId = clientId, domain = domainName, key="login")
+        user_info = {'given_name':f'{st.session_state.UD.first_name}'}      # login_button(clientId = clientId, domain = domainName, key="login")
 
         st.session_state.user_info = user_info
 
@@ -174,6 +208,7 @@ auth_state = None
 if not st.session_state.user_info == False:
     auth_state = True
     pk_status = True   # check_if_pk_exists(PK=st.session_state.user_info["sub"],YourTableName="Users",yourPrimaryKeyColumn="UserID")
+    st.markdown('<style> section[data-testid="stSidebar"]{ display: none !important; }</style>', unsafe_allow_html=True)
 
     if pk_status == True: # after first time logging in
         
@@ -193,6 +228,8 @@ if not st.session_state.user_info == False:
 
             with Upload_PDFS: # Upload documents tab
                 with st.container(border=True):
+                    if st.button("Go to previously generated Notes[History]"):
+                            st.switch_page("pages/history.py")
                     st.session_state.note['content'] = st.file_uploader("Upload PDF's",type=["Pdf","Pptx","docx"],help="Upload PDFs or slide or word document to generate a personalized note",disabled=st.session_state.disabled)
                     if st.session_state.note['content'] != None:
                         st.warning("""
@@ -203,11 +240,13 @@ if not st.session_state.user_info == False:
                             st.session_state.note['status'] = 'In Progress'
                             st.session_state.disabled  = True
                             st.session_state.text_content = extract_text_from(st.session_state.note['content'])
+                        
                             
                             if st.session_state.text_content != None:
                                 st.session_state.note['status'] = 'In Progress'
                                 st.session_state.chunks = Get_chunks(st.session_state.text_content)
                                 st.session_state.questions,st.session_state.Question_with_context =Get_questions(st.session_state.chunks)
+                                
                                 
                                     
                        
@@ -224,12 +263,19 @@ if not st.session_state.user_info == False:
                          st.session_state.AInote,st.session_state.note['status'] = Get_Notes(st.session_state.chunks) # get note function returns the ai note and the current status depending on the situation you might have to return the context and note as a dictionary
                          st.write(f" Your Note Is {st.session_state.note['status']} Click the Button below to view it")
                          st.button("click me ! ")
+                             
                             
                     elif st.session_state.note['status'] != 'In Progress':
                         st.error(f"CURRENT STATE : {st.session_state.note['status']}",icon="🚨")
 
                 elif st.session_state.note['status'] == 'ready':
                     st.success(f" {st.session_state.note['status']}",icon="🎁")
+                    if st.button("Save note"):
+                        st.session_state.History_D=save_history(st.session_state.UD._id,st.session_state.AInote,st.session_state.questions,st.session_state.Question_with_context)
+                        st.session_state.History_ID =st.session_state.History_D._id
+                        st.toast(f'{st.session_state.UD.first_name} your note was saved')
+
+                        
                     for noted in st.session_state.AInote:
                         st.markdown(noted)
 
@@ -237,7 +283,7 @@ if not st.session_state.user_info == False:
 
                 st.session_state.chapter_count = "2"
                 with st.container(border=True):
-                    st.markdown("##### ~Greetings, everyone!~ Greetings Gabriel `How` are `you` `doing`? `Are` `you` `ready` `for` `the` `test`? `If` `you` `can` `confidently` `answer` `all` `the` `questions`, know that `you` `are` `prepared` `for` `anything`. Best of luck! ")
+                    st.markdown(f"##### ~Greetings, everyone!~ Greetings {st.session_state.user_info['given_name']} `How` are `you` `doing`? `Are` `you` `ready` `for` `the` `test`? `If` `you` `can` `confidently` `answer` `all` `the` `questions`, know that `you` `are` `prepared` `for` `anything`. Best of luck! ")
 
                 if st.session_state.questions:
                     
@@ -275,59 +321,6 @@ if not st.session_state.user_info == False:
 
 
 
-        else: # Complete profile 
-            st.info("You can only submit values once")
-            with st.container(border=True):
-                
-                st.subheader("Please complete your profile")
-                tab1, tab2, tab3 = st.tabs(["Step 1", "Step 2", "Step 3"])
-                with tab1:
-                    st.code("text_for_tab_1")
-                    st.slider(" ",1,5,key="reading_speed_slider",disabled=st.session_state.t1)
-                    if st.button("Submit Reading Speed"):
-                        st.session_state.t1 = True
-                        st.write(st.session_state.reading_speed_slider)
-                        
-                    
-                
-
-                with tab2:
-                    st.code("text_for_tab_2")
-                    st.slider(" ",1,5,key="level_of_understanding_slider",disabled=st.session_state.t2)
-                    if st.button("Submit Level Of Understanding"):
-                        st.session_state.t2 = True
-                        st.write(st.session_state.level_of_understanding_slider)
-
-                with tab3:
-
-                    st.code("text_for_tab_3" )
-                    st.slider(" ",1,5,key="diction_slider",disabled=st.session_state.t3)
-                    if st.button("Finish Profile"):
-                        st.session_state.t3 = True
-                        with st.spinner("Inserting Data into database..."):
-                            # insert_into_ai_personalized_guide_for_users(st.session_state.user_info["sub"],st.session_state.reading_speed_slider,st.session_state.level_of_understanding_slider,st.session_state.diction_slider)
-                            st.success("Succesfully Completed Profile weldone")
-
-                        
-
-                
-
-    else: # First time logining in
-        st.write(f"# Nice to meet you {st.session_state.user_info['name']}")
-        # insert_into_user_reg(UserID=st.session_state.user_info["sub"],name=st.session_state.user_info["given_name"],email=st.session_state.user_info["email"] )
-        st.success("You have Successfully logged in Please refresh and log in again")
 
 
 
-if st.session_state.user_info == False:
-    auth_state = False
-
-
-        
-if not st.session_state.user_info: # if user info is not true it would lead you to login
-    st.write("# Please login to continue")
-
-
-
-if auth_state == True: #debugging 
-    pass
