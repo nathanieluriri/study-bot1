@@ -139,10 +139,12 @@ def response_calculator(Prompt):
             ]
 
             messages.append(HumanMessage(content=f"Answer these Questions</Question>{Question}<Question/> and use this context for reference</context/>{context}</context/> provide clear and easy to follow explanations using simple grammar"))
-            Ai_message = llm(messages)        
-            
-            Ai_response = Ai_message.content
-
+            try:
+                Ai_message = llm(messages)        
+                
+                Ai_response = Ai_message.content
+            except:
+                Ai_response ="You have no network Please try again when there is network"
             return Ai_response
 
 
@@ -245,7 +247,10 @@ if not st.session_state.user_info == False:
                             if st.session_state.text_content != None:
                                 st.session_state.note['status'] = 'In Progress'
                                 st.session_state.chunks = Get_chunks(st.session_state.text_content)
-                                st.session_state.questions,st.session_state.Question_with_context =Get_questions(st.session_state.chunks)
+                                try:
+                                    st.session_state.questions,st.session_state.Question_with_context =Get_questions(st.session_state.chunks)
+                                except:
+                                    st.session_state.questions,st.session_state.Question_with_context = ["No Network Try again"],None
                                 
                                 
                                     
@@ -260,7 +265,12 @@ if not st.session_state.user_info == False:
                     if st.session_state.note['status'] == 'In Progress':
                          
                          st.info(f"CURRENT STATE : {st.session_state.note['status']}",icon="🔥")
-                         st.session_state.AInote,st.session_state.note['status'] = Get_Notes(st.session_state.chunks) # get note function returns the ai note and the current status depending on the situation you might have to return the context and note as a dictionary
+                         try:
+                            st.session_state.AInote,st.session_state.note['status'] = Get_Notes(st.session_state.chunks) # get note function returns the ai note and the current status depending on the situation you might have to return the context and note as a dictionary
+                         except:
+                             st.session_state.AInote,st.session_state.note['status'] = "No network Please try again later","No Network Please try again later"
+                             
+                            
                          st.write(f" Your Note Is {st.session_state.note['status']} Click the Button below to view it")
                          st.button("click me ! ")
                              
