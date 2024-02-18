@@ -199,6 +199,42 @@ def history_query(history_id: ObjectId) -> list:
     return documents
 
         
+
+def Chathistory_query(history_id: ObjectId) -> list:
+    """
+    This function is used to get the chat history of a user
+    it returns a the history that should be passed into the st.session_state.messages variable
+
+    it only makes a return for a specific history id
+    """
+    chat_history=[]
+
+    from pymongo import MongoClient
+    with MongoClient('localhost', 27017) as client:
+        db = client['studybotdb']
+        collection = db['history']
+        query = {"_id": history_id}
+        result = collection.find(query)
+        for document in result:
+            chat_history.append(document['Chat History'])
+            
+        
+    return chat_history[0]
+
+def updateChatHistory(historyID,messages):
+    from pymongo import MongoClient
+    client = MongoClient('mongodb://localhost:27017/')
+    db = client['studybotdb']
+    history = db['history']
+    filter_criteria = {'_id':historyID}
+    update_operation = {
+    '$set': {
+        'Chat History': messages
+    }}
+    print("History ID",historyID)
+    history.update_one(filter_criteria, update_operation)
+
+
     
 
 
@@ -212,7 +248,8 @@ docs=history_query(hist[1])
 title = docs[0][0][0].split('\n')[0]# the firt index chooses which document you want to see between 3 the second index chooses the document itself then the section of the document you want to access is the third index
 
 print(title)
-
+chats =Chathistory_query(hist[1])
+print(chats)
 
 
 

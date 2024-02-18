@@ -4,7 +4,7 @@ from pathlib import Path
 from langchain_openai import ChatOpenAI 
 from extraction import extract_text_from,Get_chunks
 from variables import Get_questions,Get_Notes
-from database import history_ID_query, history_query
+from database import history_ID_query, history_query,Chathistory_query,updateChatHistory
 
 llm = ChatOpenAI(temperature=1,model="gpt-3.5-turbo-1106")
 from langchain.schema import (
@@ -50,6 +50,7 @@ def History_id_only(title_map:List[Dict] , selected_title:str)->Union[ObjectId,s
     try:
         selected_history_id = next(option['History id'] for option in title_map if option['Title'] == selected_title)
         
+        
     except StopIteration:
         selected_history_id = "Nothing selected"
     return selected_history_id
@@ -93,8 +94,11 @@ def run_once():
     if "Prompt" not in st.session_state:
         st.session_state.Prompt = False
 
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+    if "Old_messages" not in st.session_state:
+        try:
+            st.session_state.Old_messages =Chathistory_query(st.session_state.Selected_History_ID)
+        except:
+            st.session_state.Old_messages =[]
 
     if 'note' not in st.session_state:
         
@@ -181,29 +185,30 @@ def response_calculator(Prompt):
 
 
 def user(Prompt):
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+
     user_prompt = st.chat_message("user")
     user_prompt.write(Prompt)
-    print(Prompt)
-    st.session_state.messages.append({"role":"user","content":Prompt})
+    # print(Prompt)
+    st.session_state.Old_messages.append({"role":"user","content":Prompt})
     return True
 
-def bot_response(Prompt):
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+def bot_response(Prompt,HistoryID):
     bot_res = st.chat_message("assistant")
     The_gist = response_calculator(Prompt)
     
     bot_res.write(The_gist)
-    st.session_state.messages.append({ "role":"assistant", "content":The_gist})
+    st.session_state.Old_messages.append({ "role":"assistant", "content":The_gist})
+    updateChatHistory(ObjectId(HistoryID),st.session_state.Old_messages)
 
-def display_previous_chats ():
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-    for message in st.session_state.messages:
+
+
+def display_previous_chats (HistoryID:str):
+    st.session_state.Old_messages =Chathistory_query(ObjectId(HistoryID))
+    for message in st.session_state.Old_messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+            
+            
 
     
 
@@ -223,7 +228,7 @@ def main_ui():
 
     with History_Tab:  # History  tab
     
-        if st.button("Create my note"):
+        if st.button("Create A New Note",type='primary'):
                         st.switch_page("app.py")
 
         st.selectbox(
@@ -263,11 +268,15 @@ def main_ui():
     st.session_state.user_inquiry = st.chat_input("Paste the test questions here to receive concise answers from my notes.")
 
     with Botly_replies:
-        display_previous_chats()
+        try:
+            display_previous_chats(str(st.session_state.Selected_History_Id))
+        except:
+            pass
+        
         if st.session_state.user_inquiry:
             success = user(st.session_state.user_inquiry)
             if success:
-                bot_response(st.session_state.user_inquiry)
+                bot_response(st.session_state.user_inquiry,st.session_state.Selected_History_Id)
 
 
 
@@ -323,10 +332,7 @@ if st.session_state.user_info != False:
                     
 
 
-        else: # Complete profile 
-            pass
-
-
+   
 
 
 

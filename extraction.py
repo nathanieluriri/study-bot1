@@ -4,7 +4,7 @@ from word_document import docx_converter
 from ppt import ppt_converter
 from langchain.text_splitter import CharacterTextSplitter
 
-
+@st.cache_data
 def extract_text_from(doc):
     if doc != None:
         if "pdf" in doc.name:
@@ -20,7 +20,7 @@ def extract_text_from(doc):
             
         return text
         
-
+@st.cache_data
 def get_chunks_from_extracted_texts(raw_text):
     text_splitter = CharacterTextSplitter(
         separator="\n",
@@ -30,7 +30,7 @@ def get_chunks_from_extracted_texts(raw_text):
     )
     chunk = text_splitter.split_text(raw_text)
     return chunk
-
+@st.cache_data
 def Get_chunks(extracted_text):
     chunks = get_chunks_from_extracted_texts(extracted_text)
     # st.json(chunks)

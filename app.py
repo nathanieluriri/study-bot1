@@ -4,7 +4,9 @@ from pathlib import Path
 from langchain_openai import ChatOpenAI
 from extraction import extract_text_from,Get_chunks
 from variables import Get_questions,Get_Notes
-from database import save_history
+from database import save_history,updateChatHistory
+
+
 
 if 'History_ID' not in st.session_state:
     st.session_state.History_ID = None
@@ -27,18 +29,6 @@ from langchain.schema import (
     AIMessage
 )
 
-def updateChatHistory():
-    from pymongo import MongoClient
-    client = MongoClient('mongodb://localhost:27017/')
-    db = client['studybotdb']
-    history = db['history']
-    filter_criteria = {'_id':st.session_state.History_ID}
-    update_operation = {
-    '$set': {
-        'Chat History': st.session_state.messages
-    }}
-    print("History ID",st.session_state.History_ID)
-    history.update_one(filter_criteria, update_operation)
 
 
 try:
@@ -169,14 +159,16 @@ def bot_response(Prompt):
     
     bot_res.write(The_gist)
     st.session_state.messages.append({ "role":"assistant", "content":The_gist})
+    updateChatHistory(st.session_state.History_ID,st.session_state.messages)
 
 def display_previous_chats ():
     if "messages" not in st.session_state:
         st.session_state.messages = []
     for message in st.session_state.messages:
-        updateChatHistory()
+        
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+            
 
     
 
@@ -229,9 +221,10 @@ if not st.session_state.user_info == False:
 
 
             with Upload_PDFS: # Upload documents tab
-                with st.container(border=True):
-                    if st.button("Go to previously generated Notes[History]"):
+                if st.button("History",type='primary'):
                             st.switch_page("pages/history.py")
+                with st.container(border=True):
+                    
                     st.session_state.note['content'] = st.file_uploader("Upload PDF's",type=["Pdf","Pptx","docx"],help="Upload PDFs or slide or word document to generate a personalized note",disabled=st.session_state.disabled)
                     if st.session_state.note['content'] != None:
                         st.warning("""
@@ -242,6 +235,7 @@ if not st.session_state.user_info == False:
                             st.session_state.note['status'] = 'In Progress'
                             st.session_state.disabled  = True
                             st.session_state.text_content = extract_text_from(st.session_state.note['content'])
+                
                         
                             
                             if st.session_state.text_content != None:
@@ -308,6 +302,7 @@ if not st.session_state.user_info == False:
 
             with Botly_replies:
                 display_previous_chats ()
+                
                 if st.session_state.user_inquiry:
                     
                     success=user(st.session_state.user_inquiry)

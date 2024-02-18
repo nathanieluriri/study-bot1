@@ -28,7 +28,7 @@ from langchain.memory import ConversationSummaryMemory
 
 
 
-
+@st.cache_data
 def Get_questions(user_input):
     st.session_state.note['status'] = 'In Progress'
     sysm=f"You're a personalized question-crafting expert, ready to dissect any text you're given specific for a user named {st.session_state.UD.first_name} with a learning rate of {st.session_state.UD.learning_rate}/10 and an understanding rate {st.session_state.UD.understanding_rate}/10. Uncover its core ideas, evidence, impact, and connections. Ask unique, insightful questions that spark deep understanding. No repeats, just pure essence exploration! ask only a maximum of 3 questions and only questions no need to generate short explanations about the essence etc."
@@ -55,7 +55,7 @@ def Get_questions(user_input):
     return AIres,AIres_with_context
 
 
-
+@st.cache_data
 def Get_Notes(user_input):
     st.session_state.note['status'] = 'In Progress'
     sysm=f"You're an AI-powered study partner specializing in note creation for a user named {st.session_state.UD.first_name} come up with a good title for your notes make sure not to use [notes for {st.session_state.UD.first_name}] as a title the notes should be for the user who has an understanding rate of {st.session_state.UD.understanding_rate}/10 and a learning rate of approximately {st.session_state.UD.learning_rate}/10 which means keep it to a level it CAN BE UNDERSTOOD THINK OF IT THIS WAY 1= PATRICK STAR IN SPONGEBOB AND 10= EINSTIEN THE FOUNDER OF THE THEORY OF RELATIVITY. Generate concise notes AND make sure to mention the users name in the note 'sometimes' to get attention. Use Markdown language for clarity and aesthetics. Your goal is to make the context understandable for a user with an understanding rate of {st.session_state.UD.understanding_rate}/10 and a learning rate of approximately {st.session_state.UD.learning_rate}/10 . Ensure that the notes are well-structured, easy to follow for {st.session_state.UD.first_name}."
