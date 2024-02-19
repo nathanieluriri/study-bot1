@@ -151,6 +151,7 @@ def user(Prompt):
     st.session_state.messages.append({"role":"user","content":Prompt})
     return True
 
+@st.cache_data(ttl=300)
 def bot_response(Prompt):
     if "messages" not in st.session_state:
         st.session_state.messages = []

@@ -192,13 +192,14 @@ def user(Prompt):
     st.session_state.Old_messages.append({"role":"user","content":Prompt})
     return True
 
-def bot_response(Prompt,HistoryID):
+@st.cache_data(ttl=300)
+def bot_response(Prompt,_HistoryID):
     bot_res = st.chat_message("assistant")
     The_gist = response_calculator(Prompt)
     
     bot_res.write(The_gist)
     st.session_state.Old_messages.append({ "role":"assistant", "content":The_gist})
-    updateChatHistory(ObjectId(HistoryID),st.session_state.Old_messages)
+    updateChatHistory(ObjectId(_HistoryID),st.session_state.Old_messages)
 
 
 
