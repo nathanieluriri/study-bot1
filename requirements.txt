@@ -5,7 +5,7 @@ unstructured[all-docs]
 python-docx 
 python-pptx
 PyPDF2
-
+langchain_openai
 requests
 pymongo
 

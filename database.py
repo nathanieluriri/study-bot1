@@ -241,15 +241,7 @@ def updateChatHistory(historyID,messages):
 
 
 
-hist=history_ID_query(ObjectId('65cf50098b00473f9f5565f3'))
 
-docs=history_query(hist[1])
-
-title = docs[0][0][0].split('\n')[0]# the firt index chooses which document you want to see between 3 the second index chooses the document itself then the section of the document you want to access is the third index
-
-print(title)
-chats =Chathistory_query(hist[1])
-print(chats)
 
 
 

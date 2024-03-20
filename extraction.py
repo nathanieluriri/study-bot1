@@ -4,7 +4,7 @@ from word_document import docx_converter
 from ppt import ppt_converter
 from langchain.text_splitter import CharacterTextSplitter
 
-@st.cache_data(ttl=300,persist="disk")
+@st.cache_data(ttl=300)
 def extract_text_from(doc):
     if doc != None:
         if "pdf" in doc.name:

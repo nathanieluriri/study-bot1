@@ -1,3 +1,5 @@
+# Imported  dependencies,functions,variables required for the project to run/start succesfully
+
 import streamlit as st
 import time
 from pathlib import Path
@@ -7,7 +9,7 @@ from variables import Get_questions,Get_Notes
 from database import save_history,updateChatHistory
 
 
-
+# Defining a session state variable
 if 'History_ID' not in st.session_state:
     st.session_state.History_ID = None
 
