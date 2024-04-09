@@ -8,7 +8,7 @@ PyPDF2
 langchain_openai
 requests
 secure-smtplib
-pymodm==0.4.3
+pymodm
 bcrypt
 python-dotenv
 
