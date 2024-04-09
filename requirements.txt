@@ -1,5 +1,5 @@
 streamlit
-langchain==0.0.9
+langchain
 openai
 unstructured[all-docs]
 python-docx 
