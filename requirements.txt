@@ -7,11 +7,10 @@ python-pptx
 PyPDF2
 langchain_openai
 requests
-pymongo
-
+secure-smtplib
+pymodm==0.4.3
 bcrypt
-pymodm
-bson
-
 python-dotenv
+
+yagmail
 pymongo[srv]
