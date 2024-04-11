@@ -1,5 +1,6 @@
 import streamlit as st
 
+
 def db_login_signup(proceed, user_name, password, first_name='None', last_name='None', learning_rate='None', understanding_rate='None'):
     import bcrypt
     from pymongo import MongoClient
@@ -148,7 +149,15 @@ def history_ID_query(user_id:ObjectId)->list:
     """
     history_ids =[]
     from pymongo import MongoClient
-    with MongoClient('localhost',27017) as client:
+
+    from dotenv import load_dotenv
+    import os
+    load_dotenv()
+    
+    MONGO_URI = os.getenv('MONGO_URI')
+
+
+    with MongoClient(MONGO_URI) as client:
         db = client['studybotdb']
         collection = db['history']
         query = {"User Details": user_id}
@@ -184,9 +193,15 @@ def history_query(history_id: ObjectId) -> list:
     ainote=[]
     questionsiwithcontext=[]
     documents=[]
-
     from pymongo import MongoClient
-    with MongoClient('localhost', 27017) as client:
+
+    from dotenv import load_dotenv
+    import os
+    load_dotenv()
+    
+    MONGO_URI = os.getenv('MONGO_URI')
+
+    with MongoClient(MONGO_URI) as client:
         db = client['studybotdb']
         collection = db['history']
         query = {"_id": history_id}
@@ -208,9 +223,15 @@ def Chathistory_query(history_id: ObjectId) -> list:
     it only makes a return for a specific history id
     """
     chat_history=[]
-
     from pymongo import MongoClient
-    with MongoClient('localhost', 27017) as client:
+
+    from dotenv import load_dotenv
+    import os
+    load_dotenv()
+    
+    MONGO_URI = os.getenv('MONGO_URI')
+
+    with MongoClient(MONGO_URI) as client:
         db = client['studybotdb']
         collection = db['history']
         query = {"_id": history_id}
@@ -223,7 +244,14 @@ def Chathistory_query(history_id: ObjectId) -> list:
 
 def updateChatHistory(historyID,messages):
     from pymongo import MongoClient
-    client = MongoClient('mongodb://localhost:27017/')
+
+    from dotenv import load_dotenv
+    import os
+    load_dotenv()
+    
+    MONGO_URI = os.getenv('MONGO_URI')
+
+    client = MongoClient(MONGO_URI)
     db = client['studybotdb']
     history = db['history']
     filter_criteria = {'_id':historyID}
