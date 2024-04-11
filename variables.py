@@ -1,9 +1,11 @@
 import streamlit as st 
 
 from langchain_openai import ChatOpenAI
-
-
-llm = ChatOpenAI(temperature=1)
+import os
+from dotenv import load_dotenv
+load_dotenv()
+openai_api_key = os.getenv('OPENAI_API_KEY')
+llm = ChatOpenAI(temperature=1,api_key=openai_api_key)
 
 from langchain.schema import (
     SystemMessage,

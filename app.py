@@ -19,9 +19,12 @@ if 'History_D' not in st.session_state:
 
 
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
+openai_api_key = os.getenv('OPENAI_API_KEY')
 
-
-llm = ChatOpenAI(temperature=1,model="gpt-3.5-turbo-1106")
+llm = ChatOpenAI(temperature=1,model="gpt-3.5-turbo-1106",api_key=openai_api_key)
 
 
 
