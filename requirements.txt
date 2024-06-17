@@ -1,6 +1,5 @@
-streamlit
 langchain
-openai
+openai==1.14.2
 unstructured[all-docs]
 python-docx 
 python-pptx
@@ -11,6 +10,8 @@ secure-smtplib
 pymodm
 bcrypt
 python-dotenv
-
+tornado==6.4
+tenacity==8.2.3
 yagmail
+streamlit==1.32.2
 pymongo[srv]

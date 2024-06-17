@@ -314,7 +314,7 @@ if not st.session_state.user_info == False:
                     success=user(st.session_state.user_inquiry)
                     if success:
                         bot_response(st.session_state.user_inquiry)
-                    
+                     
 
                 else: print(st.session_state.user_inquiry)
                 
