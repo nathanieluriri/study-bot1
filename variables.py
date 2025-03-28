@@ -45,7 +45,7 @@ def Get_questions(user_input):
             messages.pop(1)
             counter = 1
         messages.append(HumanMessage(content="{}".format(user)))
-        Ai_message = llm(messages)        
+        Ai_message = llm.invoke(messages)        
         
         Ai_response = Ai_message.content
         messages.append(AIMessage(content="{}".format(Ai_response)))
@@ -72,7 +72,7 @@ def Get_Notes(user_input):
             messages.pop(1)
             counter = 1
         messages.append(HumanMessage(content="provided text:{}".format(user)))
-        Ai_message = llm(messages)        
+        Ai_message = llm.invoke(messages)        
         
         Ai_response = Ai_message.content
         messages.append(AIMessage(content="{}".format(Ai_response)))
@@ -82,6 +82,7 @@ def Get_Notes(user_input):
 
     
     return AIres,status
+
 
 if "chunks" not in st.session_state:
     st.session_state.chunks = []

@@ -15,6 +15,7 @@ def db_login_signup(proceed, user_name, password, first_name='None', last_name='
     connect(MONGO_URI)
 
     class User(MongoModel):
+        meta = {'allow_inheritance': True}
         user_name = fields.CharField(mongo_name="User Name")
         first_name = fields.CharField(mongo_name="First Name")
         last_name = fields.CharField(mongo_name="Last Name") 
@@ -97,6 +98,7 @@ def save_history(_UserDetails:ObjectId,AINOTE:list,QUESTIONS:list,QUESTIONSWITHC
     connect(MONGO_URI)
     
     class User(MongoModel):
+        meta = {'allow_inheritance': True}
         user_name = fields.CharField(mongo_name="User Name")
         first_name = fields.CharField(mongo_name="First Name")
         last_name = fields.CharField(mongo_name="Last Name") 
